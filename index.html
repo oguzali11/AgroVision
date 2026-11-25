@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="tr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitki Hastalığı Tespit ve Mobil Destek Sistemi | TÜBİTAK 2204-A</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        leaf: {
+                            50: '#f3f9f1',
+                            100: '#e2f1dd',
+                            200: '#c6e3bd',
+                            500: '#3b8c3e',
+                            600: '#2e7d32',
+                            700: '#235e26',
+                            800: '#1b471e',
+                            900: '#133315',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(46, 125, 50, 0.14);
+        }
+        .hero-pattern {
+            background-color: #133315;
+            background-image: radial-gradient(at 0% 0%, rgba(59, 140, 62, 0.35) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.25) 0px, transparent 50%);
+        }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800 antialiased selection:bg-leaf-600 selection:text-white">
+
+    <!-- Üst Gezinme Çubuğu -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="#" class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-leaf-600 text-white flex items-center justify-center text-lg shadow-sm">🌿</span>
+                    <div>
+                        <span class="font-bold text-slate-900 tracking-tight block leading-none">AgroVision AI</span>
+                        <span class="text-[11px] font-medium text-leaf-600">TÜBİTAK 2204-A Projesi</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+                    <a href="#problem" class="hover:text-leaf-600 transition">Sorun & Amaç</a>
+                    <a href="#video-anlatim" class="hover:text-leaf-600 transition">🎬 Eğitici Video</a>
+                    <a href="#nasil-calisir" class="hover:text-leaf-600 transition">Nasıl Çalışır?</a>
+                    <a href="#prototip" class="text-leaf-700 font-semibold bg-leaf-50 px-3 py-1.5 rounded-lg hover:bg-leaf-100 transition">🔬 Canlı Prototip</a>
+                    <a href="#modeller" class="hover:text-leaf-600 transition">Yapay Zekâ & Yol Haritası</a>
+                    <a href="#rehber" class="hover:text-leaf-600 transition">Hastalık Rehberi (82)</a>
+                </div>
+                <a href="#prototip" class="md:hidden bg-leaf-600 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm">
+                    Analiz Et
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Kahraman (Hero) Bölümü - Slayt 1 & 3 Entegrasyonu -->
+    <header class="hero-pattern text-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 relative z-10">
+            <div class="grid lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-emerald-200 text-xs font-medium">
+                        <span>🎓 TÜBİTAK 2204-A Yazılım / Teknolojik Tasarım</span>
+                        <span>•</span>
+                        <span>Yapay Zekâ & Tarım Teknolojileri</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                        Tarımda Yapay Zekâ ile <span class="text-emerald-300">Bitki Hastalığı Tespiti</span> ve Gerçek Zamanlı Geri Bildirim
+                    </h1>
+                    <p class="text-base sm:text-lg text-emerald-50/90 leading-relaxed max-w-2xl">
+                        Elma yaprağı ve meyve yüzeyindeki hastalık belirtilerini akıllı telefon kamerasıyla analiz eden, çoklu kare tutarlılığı ölçen ve üreticiye anlaşılır bakım önerileri sunan mobil uyumlu karar destek sistemi.
+                    </p>
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        <a href="#prototip" class="px-6 py-3.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-950/30 transition flex items-center gap-2">
+                            <span>📷</span> Canlı Prototipi Dene
+                        </a>
+                        <a href="#video-anlatim" class="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/25 text-white font-semibold text-sm transition flex items-center gap-2">
+                            <span>🎬</span> Eğitici Videoyu İzle
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-white/15 max-w-lg">
+                        <div>
+                            <div class="text-2xl font-extrabold text-emerald-300">%17–30</div>
+                            <div class="text-xs text-emerald-100/80">Küresel ürün kaybı (Savary vd.)</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-extrabold text-emerald-300">16 Kare</div>
+                            <div class="text-xs text-emerald-100/80">Çoklu foto & video birleştirme</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-extrabold text-emerald-300">82 Kayıt</div>
+                            <div class="text-xs text-emerald-100/80">Elma öncelikli hastalık rehberi</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sağ Taraf: Slaytlardaki Mobil Saha Kullanımı & CropIntellect Görselleştirmesi -->
+                <div class="lg:col-span-5">
+                    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-5 shadow-2xl">
+                        <div class="bg-slate-900 rounded-2xl p-5 text-white border border-slate-700/80">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span class="text-xs font-semibold text-slate-300">Saha Tarama Simülasyonu</span>
+                                </div>
+                                <span class="text-[11px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-medium">Anlık Geri Bildirim</span>
+                            </div>
+                            <!-- SVG İllüstrasyon: Yaprak & Meyve Tarama Vizörü -->
+                            <div class="relative rounded-xl bg-gradient-to-br from-emerald-950 to-slate-900 p-4 border border-emerald-500/30 mb-4 flex items-center justify-between gap-4">
+                                <svg class="w-24 h-24 shrink-0" viewBox="0 0 120 120" fill="none">
+                                    <rect x="8" y="8" width="104" height="104" rx="16" stroke="#34d399" stroke-width="2" stroke-dasharray="6 4"/>
+                                    <path d="M60 22C38 35 28 58 36 82C42 94 56 98 60 98C64 98 78 94 84 82C92 58 82 35 60 22Z" fill="#2e7d32" stroke="#6ee7b7" stroke-width="2"/>
+                                    <path d="M60 26V98M60 48L44 38M60 64L76 52M60 78L43 68" stroke="#a7f3d0" stroke-width="1.8" stroke-linecap="round"/>
+                                    <circle cx="48" cy="54" r="5" fill="#f43f5e" fill-opacity="0.85"/>
+                                    <circle cx="71" cy="68" r="4" fill="#f43f5e" fill-opacity="0.85"/>
+                                    <circle cx="53" cy="74" r="3.5" fill="#fbbf24" fill-opacity="0.9"/>
+                                </svg>
+                                <div class="space-y-1.5 text-xs">
+                                    <div class="text-emerald-300 font-bold text-sm">Elma Karalekesi Şüphesi</div>
+                                    <div class="text-slate-400 italic">Venturia inaequalis</div>
+                                    <p class="text-slate-300 leading-relaxed">Yaprak ve meyve yüzeyinde koyu zeytin yeşili-siyah lekeler tespit edildi.</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2.5 text-xs">
+                                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
+                                    <span class="text-slate-400 block">Kare Tutarlılığı</span>
+                                    <span class="text-emerald-400 font-bold text-sm">%92 (Yüksek)</span>
+                                </div>
+                                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
+                                    <span class="text-slate-400 block">Önerilen Adım</span>
+                                    <span class="text-amber-300 font-bold text-sm">Uzman & Budama</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Bölüm 1: Problem, Amaç ve Bilimsel Hipotezler (Rapor Bölüm 1-3 & Slayt 2) -->
+    <section id="problem" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-12">
+            <span class="text-xs font-bold uppercase tracking-wider text-leaf-600 bg-leaf-100 px-3 py-1 rounded-full">Bilimsel Çerçeve</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">Neden Bu Sistemi Geliştirdik?</h2>
+            <p class="text-slate-600 mt-3 text-sm sm:text-base">
+                Mevcut açık veri setleri (örn. PlantVillage) çoğunlukla laboratuvar ortamında çekilmiş yaprak görüntülerine odaklanır. Ancak elma yetiştiriciliğinde pek çok hastalık doğrudan <strong>meyve yüzeyinde</strong> ortaya çıkar ve küçük üreticiler her an ziraat uzmanına ulaşamaz.
+            </p>
+        </div>
+
+        <!-- Slayt 2'deki 3 Temel Sütun -->
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-emerald-100 text-leaf-700 flex items-center justify-center text-2xl mb-4">🔍</div>
+                <h3 class="font-bold text-lg text-slate-900 mb-2">1. Veri ve Görüntü Analizi</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Bitki yaprağı ve elma meyvesi görüntüleri işlenerek değerlendirilir. Uzman olmayan kullanıcılar için karmaşık parametreler yerine anlaşılır görsel maskeler ve renk oranları sunulur.
+                </p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-2xl mb-4">🧠</div>
+                <h3 class="font-bold text-lg text-slate-900 mb-2">2. Yapay Zekâ & Geri Bildirim</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Görüntü sınıflandırma olası hastalıkları belirlemeye yardımcı olur. Kural tabanlı ön analiz, çoklu kare oylaması ve derin öğrenme yol haritası bir arada sunulur.
+                </p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mb-4">📱</div>
+                <h3 class="font-bold text-lg text-slate-900 mb-2">3. Mobil Entegrasyon & Saha</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Akıllı telefon tarayıcısında kurulum gerektirmeden bahçede veya tarlada kullanılabilir. Anlık ön değerlendirme ve uygulanabilir kültürel bakım adımları sağlar.
+                </p>
+            </div>
+        </div>
+
+        <!-- Araştırma Sorusu ve Hipotezler Kartı -->
+        <div class="bg-gradient-to-r from-leaf-900 to-emerald-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
+            <div class="grid lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-5">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-300">Araştırma Sorusu</span>
+                    <h3 class="text-xl font-bold mt-1 leading-snug">
+                        Kural tabanlı görüntü analizi ile transfer öğrenme modelleri doğruluk, yanlış alarm ve çoklu kare kararlılığı açısından nasıl karşılaştırılır?
+                    </h3>
+                </div>
+                <div class="lg:col-span-7 grid sm:grid-cols-2 gap-4">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
+                        <div class="inline-block px-2.5 py-0.5 rounded-md bg-emerald-400 text-slate-950 font-extrabold text-xs mb-2">Hipotez H1</div>
+                        <p class="text-sm text-emerald-50">
+                            Transfer öğrenmeyle eğitilmiş derin öğrenme modelleri (ResNet50, MobileNetV2, ViT), sabit renk/kontrast eşiklerine dayanan kural tabanlı yönteme göre <strong>daha düşük yanlış alarm oranı</strong> verir.
+                        </p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
+                        <div class="inline-block px-2.5 py-0.5 rounded-md bg-amber-300 text-slate-950 font-extrabold text-xs mb-2">Hipotez H2</div>
+                        <p class="text-sm text-emerald-50">
+                            Aynı örneğin birden çok görüntüsünün (3–16 kare veya video kesiti) oy çokluğuyla birleştirilmesi, tek görüntüye kıyasla <strong>sınıflandırma kararlılığını artırır</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Yeni Bölüm: İnteraktif Eğitici Video Oynatıcı (Canvas Animasyonlu 5 Sahnelik Sunum) -->
+    <section id="video-anlatim" class="py-16 bg-stone-100 border-t border-slate-200/80">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-8">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">Görsel Özet • 40 Saniye</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">🎬 Kısa Eğitici Video Anlatımı</h2>
+                <p class="text-slate-600 mt-2 text-sm">
+                    Saha fotoğrafı çekiminden yerel kontrast leke tespitine ve çoklu kare tutarlılık oylamasına kadar sistemin işleyişini animasyonlu video üzerinden izleyin.
+                </p>
+            </div>
+
+            <div class="bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 overflow-hidden">
+                <!-- Video Ekranı -->
+                <div class="relative aspect-video bg-slate-950 w-full flex items-center justify-center">
+                    <canvas id="edu-canvas" class="w-full h-full block"></canvas>
+                    
+                    <!-- Sahne Rozeti -->
+                    <div class="absolute top-4 left-4 bg-slate-900/85 backdrop-blur-md border border-white/15 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                        <span id="vid-scene-badge">Sahne 1 / 5 • Sorun ve Saha İhtiyacı</span>
+                    </div>
+
+                    <!-- Alt Altyazı (Subtitles) Kutusu -->
+                    <div class="absolute bottom-4 inset-x-4 sm:inset-x-10 bg-slate-950/85 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 text-center">
+                        <p id="vid-subtitle" class="text-white text-xs sm:text-sm md:text-base font-medium leading-relaxed">
+                            Bitki hastalıkları küresel tarımda %17 ile %30 arasında verim kaybına yol açar; üreticinin sahada hızlı ön değerlendirmeye ihtiyacı vardır.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Video Kontrolleri -->
+                <div class="bg-slate-900 px-5 py-4 border-t border-slate-800 space-y-3">
+                    <!-- İlerleme Çubuğu -->
+                    <div id="vid-progress-wrap" class="w-full h-2 bg-slate-800 rounded-full overflow-hidden cursor-pointer relative" title="Sahneye atlamak için tıklayın">
+                        <div id="vid-progress" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 w-0 transition-all duration-100"></div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <button id="vid-play-btn" type="button" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition shadow-sm">
+                                <span id="vid-play-icon">⏸</span>
+                                <span id="vid-play-text">Duraklat</span>
+                            </button>
+                            <button id="vid-restart-btn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm transition">
+                                ↺ Başa Sar
+                            </button>
+                        </div>
+
+                        <!-- Sahne Hızlı Geçiş Butonları -->
+                        <div class="flex flex-wrap gap-1.5 text-[11px]">
+                            <button type="button" onclick="jumpScene(0)" class="vid-step px-2.5 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">1. Neden Yaptık?</button>
+                            <button type="button" onclick="jumpScene(1)" class="vid-step px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white font-semibold">2. Foto & Video</button>
+                            <button type="button" onclick="jumpScene(2)" class="vid-step px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white font-semibold">3. Leke Tespiti</button>
+                            <button type="button" onclick="jumpScene(3)" class="vid-step px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white font-semibold">4. Oy Çokluğu</button>
+                            <button type="button" onclick="jumpScene(4)" class="vid-step px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white font-semibold">5. AI & Rehber</button>
+                        </div>
+
+                        <span id="vid-time" class="text-xs font-mono text-slate-400">00:00 / 00:45</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bölüm 2: Öğretici Algoritma Akışı (Rapor Bölüm 4.2) -->
+    <section id="nasil-calisir" class="py-16 bg-white border-y border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-bold uppercase tracking-wider text-leaf-600 bg-leaf-100 px-3 py-1 rounded-full">Öğretici Teknik Rehber</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">Sistem Arka Planda Nasıl Çalışır?</h2>
+                <p class="text-slate-600 mt-2 text-sm sm:text-base">
+                    Mevcut prototip, herhangi bir sunucuya ihtiyaç duymadan tarayıcı içinde 5 aşamalı bir görüntü işleme hattı (pipeline) çalıştırır.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-5 gap-4">
+                <div class="bg-stone-50 rounded-2xl p-5 border border-slate-200 relative">
+                    <span class="w-7 h-7 rounded-full bg-leaf-600 text-white font-bold text-xs flex items-center justify-center mb-3">1</span>
+                    <h4 class="font-bold text-sm text-slate-900 mb-1.5">Çoklu Kare & Video Çıkarımı</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Yüklenen videodan eşit aralıklarla <strong>8 kare</strong> çıkarılır; çoklu fotoğraflarla birlikte en fazla <strong>16 kare</strong> işlenir. Bulanıklık ve aşırı ışık kontrolü yapılır.
+                    </p>
+                </div>
+                <div class="bg-stone-50 rounded-2xl p-5 border border-slate-200">
+                    <span class="w-7 h-7 rounded-full bg-leaf-600 text-white font-bold text-xs flex items-center justify-center mb-3">2</span>
+                    <h4 class="font-bold text-sm text-slate-900 mb-1.5">Merkez Odak & Arka Plan Ayıklama</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Meyve modunda kadrajın merkezindeki dairesel bölge (<code class="text-leaf-700">R = 0.42·S</code>) analiz edilir. Parlak flaş yansımaları ve beyaz arka plan hesap dışı bırakılır.
+                    </p>
+                </div>
+                <div class="bg-stone-50 rounded-2xl p-5 border border-slate-200">
+                    <span class="w-7 h-7 rounded-full bg-leaf-600 text-white font-bold text-xs flex items-center justify-center mb-3">3</span>
+                    <h4 class="font-bold text-sm text-slate-900 mb-1.5">İntegral Görüntü ile Yerel Kontrast</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Elmanın doğal koyu rengi ile hastalıklı lekeyi ayırmak için her piksel kendi komşuluk ortalamasıyla kıyaslanır. Belirgin koyu pikseller leke adayı olur.
+                    </p>
+                </div>
+                <div class="bg-stone-50 rounded-2xl p-5 border border-slate-200">
+                    <span class="w-7 h-7 rounded-full bg-leaf-600 text-white font-bold text-xs flex items-center justify-center mb-3">4</span>
+                    <h4 class="font-bold text-sm text-slate-900 mb-1.5">Bağlı Bileşen & Şekil Ayrımı</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Bitişik leke pikselleri gruplanır. Çok sayıda küçük leke <strong>Karaleke</strong>, tek veya birkaç geniş koyu alan <strong>Çürüklük</strong> şüphesi olarak ayrılır.
+                    </p>
+                </div>
+                <div class="bg-stone-50 rounded-2xl p-5 border border-slate-200">
+                    <span class="w-7 h-7 rounded-full bg-leaf-600 text-white font-bold text-xs flex items-center justify-center mb-3">5</span>
+                    <h4 class="font-bold text-sm text-slate-900 mb-1.5">Oy Çokluğu & Tutarlılık Skoru</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Tüm karelerin kararları oylanır. Kareler arası uyum oranına göre <strong>Düşük, Orta veya Yüksek</strong> tutarlılık etiketi üretilir ve pembe leke maskesi çizilir.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bölüm 3: CANLI ÇALIŞAN PROTOTİP (Mevcut HTML Uygulamasının Tam Entegre & Geliştirilmiş Hali) -->
+    <section id="prototip" class="py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-8">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">İnteraktif Uygulama</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">Canlı Ön Değerlendirme Prototipi</h2>
+            <p class="text-slate-600 mt-2 text-sm">
+                Kendi yaprak/meyve fotoğrafınızı veya kısa videonuzu yükleyin ya da aşağıdan hazır <strong>örnek senaryoları</strong> tek tıkla test edin.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+            <!-- Üst Bilgi Barı -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🔬</span>
+                    <div>
+                        <h3 class="font-bold text-sm">Tarayıcı İçi Görüntü İşleme Motoru</h3>
+                        <p class="text-[11px] text-slate-400">MobileNetV2 Nesne Filtresi + İntegral Görüntü Kontrast Analizi</p>
+                    </div>
+                </div>
+                <span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full">
+                    ⚠️ Ön değerlendirme prototipidir • Kesin tanı yerine geçmez
+                </span>
+            </div>
+
+            <div class="p-6 sm:p-8">
+                <!-- Mod Seçimi -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
+                    <div class="flex bg-slate-100 p-1.5 rounded-xl w-full sm:w-auto">
+                        <button type="button" data-m="yaprak" class="mode-btn flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-sm font-semibold bg-leaf-600 text-white shadow-sm transition">
+                            🍃 Yaprak Modu
+                        </button>
+                        <button type="button" data-m="meyve" class="mode-btn flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 transition">
+                            🍎 Elma Meyve Yüzeyi
+                        </button>
+                    </div>
+
+                    <!-- Hızlı Örnek Test Butonları (Kullanıcının fotoğrafı yoksa bile algoritmayı deneyimlemesi için) -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span class="text-slate-500 font-medium">Örnek Simülasyon:</span>
+                        <button type="button" onclick="runDemoSample('apple_scab')" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 font-semibold transition">
+                            🍎 Karalekeli Elma
+                        </button>
+                        <button type="button" onclick="runDemoSample('leaf_healthy')" class="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-semibold transition">
+                            🍃 Sağlıklı Yaprak
+                        </button>
+                        <button type="button" onclick="runDemoSample('leaf_yellow')" class="px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 font-semibold transition">
+                            🍂 Sararmış Yaprak
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Yükleme Alanı -->
+                <div class="border-2 border-dashed border-slate-300 hover:border-leaf-500 rounded-2xl p-8 text-center bg-stone-50/70 transition">
+                    <p id="hint" class="text-slate-700 font-semibold text-base mb-2">Yaprak fotoğrafı çekin veya yükleyin</p>
+                    <p class="text-xs text-slate-500 max-w-md mx-auto mb-5">
+                        Birden fazla fotoğraf veya kısa bir video seçebilirsiniz (en fazla 16 kare). Farklı açılar tutarlılık skorunu artırır.
+                    </p>
+                    <label class="inline-flex items-center gap-2 bg-leaf-600 hover:bg-leaf-700 text-white font-semibold px-6 py-3 rounded-xl cursor-pointer shadow-md shadow-leaf-600/20 transition">
+                        <span>📷 Fotoğraf / Video Seç</span>
+                        <input id="f" type="file" accept="image/*,video/*" multiple hidden>
+                    </label>
+                    <div id="thumbs" class="flex gap-2 flex-wrap justify-center mt-5"></div>
+                </div>
+
+                <!-- Analiz Sonuç Kartı -->
+                <div id="res" class="hidden mt-6 bg-stone-50 rounded-2xl p-6 border border-slate-200">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <span id="rt" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-leaf-100 text-leaf-700"></span>
+                        <span id="ci-badge" class="text-xs font-medium text-slate-500"></span>
+                    </div>
+                    <h3 id="rn" class="text-xl font-extrabold text-slate-900"></h3>
+                    <p id="rd" class="text-sm text-slate-600 mt-1"></p>
+                    <p id="ci" class="text-xs text-slate-500 mt-2 bg-white p-3 rounded-xl border border-slate-200/80"></p>
+
+                    <!-- Yüzdesel Dağılım Çubukları -->
+                    <div id="bars-wrap" class="grid sm:grid-cols-2 gap-4 mt-5">
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <div class="flex justify-between text-xs font-semibold mb-1.5">
+                                <span class="lbl-row text-slate-700">Sağlıklı (yeşil) alan</span>
+                                <span id="v1" class="text-emerald-700 font-bold"></span>
+                            </div>
+                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div id="b1" class="h-full bg-emerald-500 rounded-full transition-all duration-500"></div></div>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <div class="flex justify-between text-xs font-semibold mb-1.5">
+                                <span class="lbl-row text-slate-700">Sararma</span>
+                                <span id="v2" class="text-amber-600 font-bold"></span>
+                            </div>
+                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div id="b2" class="h-full bg-amber-400 rounded-full transition-all duration-500"></div></div>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <div class="flex justify-between text-xs font-semibold mb-1.5">
+                                <span class="lbl-row text-slate-700">Kahverengi / nekroz</span>
+                                <span id="v3" class="text-rose-700 font-bold"></span>
+                            </div>
+                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div id="b3" class="h-full bg-rose-600 rounded-full transition-all duration-500"></div></div>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200/70">
+                            <div class="flex justify-between text-xs font-semibold mb-1.5">
+                                <span class="lbl-row text-slate-700">Beyaz / küllü örtü</span>
+                                <span id="v4" class="text-slate-600 font-bold"></span>
+                            </div>
+                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div id="b4" class="h-full bg-slate-400 rounded-full transition-all duration-500"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Öneriler -->
+                    <div class="mt-5 bg-white p-4 rounded-xl border border-slate-200/80">
+                        <h4 class="text-sm font-bold text-slate-900 mb-2">📋 Önerilen Yönetim ve Bakım Adımları</h4>
+                        <ul id="rs" class="list-disc pl-5 space-y-1 text-sm text-slate-700"></ul>
+                    </div>
+
+                    <!-- Meyve Modu Ayrıntılı Maske Çıktısı -->
+                    <div id="dt2" class="mt-4"></div>
+
+                    <div class="mt-4 text-xs text-slate-500 border-l-4 border-amber-400 pl-3 py-1">
+                        <strong>Bilimsel Şeffaflık Notu:</strong> Bu prototip, eğitilmiş CNN/ViT modeli yerine renk dağılımı ve yerel kontrast analizine dayalı kural tabanlı bir yöntem kullanır. Gölge veya doğal kabuk geçişleri yanlış alarm üretebilir; kesin teşhis için ziraat mühendisine danışın.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bölüm 4: Model Karşılaştırması & 6 Aylık Araştırma Yol Haritası (Rapor Bölüm 4.3, 5.3, 7) -->
+    <section id="modeller" class="py-16 bg-slate-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-10 items-start">
+                <!-- Sol: Mimari & Literatür / Planlanan Modeller -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Derin Öğrenme Aşaması</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold mt-2">Planlanan Model Mimarileri & Literatür Tabanı</h2>
+                        <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+                            Raporumuzun ikinci aşamasında, uzman teyidiyle etiketlenmiş saha elma yaprağı ve meyvesi görüntüleri üzerinde transfer öğrenme uygulanacak ve kural tabanlı yöntemle kıyaslanacaktır.
+                        </p>
+                    </div>
+
+                    <!-- Karşılaştırma Tablosu (Rapor 5.3 & Prototip Referans Verileri) -->
+                    <div class="bg-slate-800/80 rounded-2xl border border-slate-700 overflow-hidden">
+                        <div class="px-5 py-3.5 border-b border-slate-700 flex justify-between items-center">
+                            <span class="font-bold text-sm">Değerlendirilecek Yöntemler ve Ölçütler</span>
+                            <span class="text-[11px] text-emerald-300 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">Veri sızıntısı korumalı bölme</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs sm:text-sm">
+                                <thead class="bg-slate-800 text-slate-400 border-b border-slate-700">
+                                    <tr>
+                                        <th class="py-3 px-4">Yöntem / Mimari</th>
+                                        <th class="py-3 px-4">Yaklaşım</th>
+                                        <th class="py-3 px-4">Literatür Referansı</th>
+                                        <th class="py-3 px-4">Proje Durumu</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-700/70">
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold text-amber-300">Kural Tabanlı (Mevcut)</td>
+                                        <td class="py-3 px-4 text-slate-300">İntegral görüntü + renk eşiği</td>
+                                        <td class="py-3 px-4 text-slate-400">Eğitim verisi gerektirmez</td>
+                                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs">Tamamlandı (Taban)</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold">ResNet50 (Transfer)</td>
+                                        <td class="py-3 px-4 text-slate-300">Artık bağlantılı CNN (He vd.)</td>
+                                        <td class="py-3 px-4 text-slate-400">PlantVillage ~%97,15</td>
+                                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-xs">Ay 4'te Eğitilecek</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold">MobileNetV2 (TFLite)</td>
+                                        <td class="py-3 px-4 text-slate-300">Hafif mobil CNN (~15 ms)</td>
+                                        <td class="py-3 px-4 text-slate-400">PlantVillage ~%98,25</td>
+                                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-xs">Cihaz İçi Hedef</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold text-emerald-300">ViT-B/16 (Vision Transformer)</td>
+                                        <td class="py-3 px-4 text-slate-300">Öz-dikkat (Self-Attention)</td>
+                                        <td class="py-3 px-4 text-slate-400">Hibrit/ViT ~%99,90</td>
+                                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-xs">Grad-CAM ile Test</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-5 py-3 bg-slate-800/50 text-[11px] text-slate-400">
+                            * Raporda belirtildiği üzere henüz deneysel eğitim tamamlanmadığı için saha doğruluk, kesinlik, duyarlılık, F1 ve yanlış alarm tabloları Ay 4 sonunda doldurulacaktır.
+                        </div>
+                    </div>
+
+                    <!-- Sistem Mimarisi Akışı -->
+                    <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/80">
+                        <h4 class="text-sm font-bold text-emerald-300 mb-3">Hedeflenen Uçtan Uca Sistem Mimarisi</h4>
+                        <div class="flex flex-wrap items-center gap-2 text-xs">
+                            <span class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 font-semibold">📱 Mobil Web / Flutter</span>
+                            <span class="text-slate-500">→</span>
+                            <span class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 font-semibold">⚡ FastAPI / Tarayıcı JS</span>
+                            <span class="text-slate-500">→</span>
+                            <span class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 font-semibold">🧠 TFLite / TF.js Modeli</span>
+                            <span class="text-slate-500">→</span>
+                            <span class="px-3 py-2 rounded-xl bg-emerald-950 border border-emerald-700/50 text-emerald-300 font-semibold">🔥 Grad-CAM Açıklaması</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sağ: 6 Aylık TÜBİTAK İş-Zaman Çizelgesi -->
+                <div class="lg:col-span-5 bg-slate-800/80 rounded-3xl p-6 border border-slate-700">
+                    <h3 class="font-bold text-lg text-white mb-4 flex items-center gap-2">
+                        <span>📅</span> 6 Aylık İş-Zaman Çizelgesi
+                    </h3>
+                    <div class="space-y-4 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-700">
+                        <div class="relative pl-10">
+                            <span class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center absolute left-0 top-0.5">1</span>
+                            <div class="text-xs font-bold text-emerald-400">1. Ay • Tamamlandı</div>
+                            <div class="text-sm font-semibold">Literatür taraması & uzman görüşmesi</div>
+                            <div class="text-xs text-slate-400">Hastalık listesi ve etiketleme protokolü</div>
+                        </div>
+                        <div class="relative pl-10">
+                            <span class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center absolute left-0 top-0.5">2</span>
+                            <div class="text-xs font-bold text-emerald-400">2. Ay • Süreçte</div>
+                            <div class="text-sm font-semibold">Veri toplama ve uzman etiketleme</div>
+                            <div class="text-xs text-slate-400">Etiketli elma yaprağı ve meyve veri seti</div>
+                        </div>
+                        <div class="relative pl-10">
+                            <span class="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center absolute left-0 top-0.5">3</span>
+                            <div class="text-xs font-bold text-amber-300">3. Ay • Prototip Hazır</div>
+                            <div class="text-sm font-semibold">Kural tabanlı yöntemin değerlendirilmesi</div>
+                            <div class="text-xs text-slate-400">Taban başarım ve yanlış alarm ölçümü</div>
+                        </div>
+                        <div class="relative pl-10">
+                            <span class="w-7 h-7 rounded-full bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center absolute left-0 top-0.5">4</span>
+                            <div class="text-xs font-bold text-slate-400">4. Ay • Planlanan</div>
+                            <div class="text-sm font-semibold">Model eğitimi (ResNet50, MobileNetV2, ViT)</div>
+                            <div class="text-xs text-slate-400">Eğitilmiş modeller ve karşılaştırma tablosu</div>
+                        </div>
+                        <div class="relative pl-10">
+                            <span class="w-7 h-7 rounded-full bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center absolute left-0 top-0.5">5</span>
+                            <div class="text-xs font-bold text-slate-400">5. Ay • Planlanan</div>
+                            <div class="text-sm font-semibold">Uygulamaya entegrasyon ve saha testi</div>
+                            <div class="text-xs text-slate-400">Mobil/tarayıcı içi çalışan derin öğrenme modeli</div>
+                        </div>
+                        <div class="relative pl-10">
+                            <span class="w-7 h-7 rounded-full bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center absolute left-0 top-0.5">6</span>
+                            <div class="text-xs font-bold text-slate-400">6. Ay • Planlanan</div>
+                            <div class="text-sm font-semibold">Analiz ve raporlama</div>
+                            <div class="text-xs text-slate-400">Nihai TÜBİTAK proje raporu ve sunum</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bölüm 5: İnteraktif 82 Kayıtlık Hastalık Rehberi (Uygulamadaki Tam Veritabanı) -->
+    <section id="rehber" class="py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-8">
+            <span class="text-xs font-bold uppercase tracking-wider text-leaf-600 bg-leaf-100 px-3 py-1 rounded-full">Bilgi Bankası</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">Bitki Hastalıkları ve Zararlıları Rehberi</h2>
+            <p class="text-slate-600 mt-2 text-sm">
+                Proje kapsamında derlenen <strong>82 kayıtlık</strong> ansiklopedik rehber. <strong>Elma (26 kayıt)</strong> öncelikli olarak listelenmiştir.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                <input id="q" type="text" placeholder="🔍 Bitki, hastalık adı veya belirti ara (örn. karaleke, ateş yanıklığı, külleme)..." class="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-stone-50 text-sm focus:outline-none focus:border-leaf-600">
+                <span id="g-count" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-leaf-50 text-leaf-700 text-xs font-bold">82 Kayıt</span>
+            </div>
+            <div id="gc" class="flex gap-2 overflow-x-auto pb-3 mb-4 border-b border-slate-100"></div>
+            <div id="gl" class="divide-y divide-slate-100 max-h-[520px] overflow-y-auto pr-1"></div>
+            <p class="mt-4 text-xs text-slate-500 border-l-4 border-amber-400 pl-3">
+                Bilgiler üreticiyi bilgilendirme amaçlı genel niteliktedir; kimyasal ilaç adı ve doz kararları için mutlaka yerel ziraat mühendisine danışın.
+            </p>
+        </div>
+    </section>
+
+    <!-- Alt Bilgi (Footer) & Akademik Kaynaklar -->
+    <footer class="bg-stone-100 border-t border-slate-200 py-12 text-slate-600 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-8 pb-8 border-b border-slate-200">
+                <div>
+                    <h4 class="font-bold text-slate-900 text-sm mb-2">🌿 Elma Hastalıklarının Görüntü İşleme ve Derin Öğrenme ile Tespiti</h4>
+                    <p class="leading-relaxed">
+                        TÜBİTAK 2204-A Lise Öğrencileri Araştırma Projeleri Yarışması kapsamında hazırlanan karar destek sistemi prototipi ve öğretici proje web portalı.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-sm mb-2">📚 Seçilmiş Akademik Kaynaklar</h4>
+                    <ul class="space-y-1 text-[11px] text-slate-500">
+                        <li>• Savary vd. (2019). The global burden of pathogens and pests on major food crops. <em>Nature Ecology & Evolution</em>.</li>
+                        <li>• Hughes & Salathé (2015). PlantVillage open access repository of images on plant health.</li>
+                        <li>• He vd. (2016) ResNet • Sandler vd. (2018) MobileNetV2 • Dosovitskiy vd. (2021) Vision Transformer • Selvaraju vd. (2017) Grad-CAM.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-6 flex flex-wrap justify-between items-center gap-2 text-slate-500">
+                <span>Bu sistem bir karar destek aracıdır; kesin teşhis yerine geçmez.</span>
+                <span>TÜBİTAK 2204-A • Yazılım / Teknolojik Tasarım</span>
+            </div>
+        </div>
+    </footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const D = {
+    saglikli: { n: 'Sağlıklı Yaprak', d: 'Belirgin bir hastalık izi saptanmadı.', t: 'Sağlıklı', r: ['Düzenli sulama ve gübrelemeye devam edin.', 'Haftalık görsel kontrolü sürdürün.'] },
+    leke: { n: 'Yaprak Lekesi / Yanıklık Şüphesi', d: 'Kahverengi nekrotik alanlar yaygın. Erken/geç yanıklık veya bakteriyel leke belirtisi olabilir.', t: 'Fungal / bakteriyel', r: ['Etkilenen yaprakları toplayıp bitkiden uzaklaştırın.', 'Yapraktan sulamadan kaçının; havalandırmayı artırın.', 'Kimyasal ilaç öncesi ziraat mühendisine danışın.'] },
+    sararma: { n: 'Sararma / Virüs Şüphesi', d: 'Yaygın sararma var. Besin eksikliği veya virüs (mozaik, kıvırcıklık) olabilir.', t: 'Virüs / beslenme', r: ['Toprak nemini ve besin dengesini kontrol edin.', 'Yaprak bitleri ve beyaz sinekle mücadele edin.', 'Şüpheli bitkiyi izole edin.'] },
+    kulleme: { n: 'Külleme Şüphesi', d: 'Yaprak yüzeyinde beyazımsı örtü belirgin.', t: 'Fungal', r: ['Sık dikimi seyreltin ve havalandırmayı artırın.', 'Etkilenen kısımları budayın.', 'Kükürt bazlı veya ruhsatlı fungusit için uzman görüşü alın.'] },
+    meyve_saglikli: { n: 'Sağlam Meyve Yüzeyi', d: 'Yüzeyde belirgin leke, çürüme veya küf izi saptanmadı.', t: 'Sağlıklı', r: ['Meyveleri serin ve havadar ortamda saklayın.', 'Hasat sonrası çürük meyveleri ayırın.'] },
+    meyve_karaleke: { n: 'Karaleke Şüphesi (Elma)', d: 'Yüzeyde çok sayıda küçük, net kenarlı koyu lekeler var; elma karalekesinin tipik görünümü.', t: 'Fungal', r: ['Lekeli meyveleri sağlamlardan ayırın.', 'Dökülen yaprak ve meyveleri bahçeden uzaklaştırın.', 'Yaprakta da leke var mı kontrol edin; ilaçlama programı için ziraat mühendisine danışın.'] },
+    meyve_curuk: { n: 'Çürüklük Şüphesi (Elma)', d: 'Tek veya birkaç büyük koyu alan var; monilya, acı çürüklük veya kara çürüklük olabilir.', t: 'Fungal', r: ['Etkilenen meyveyi hemen ayırın, ağaçta bırakmayın.', 'Alanı elle dokunup yumuşaklığı kontrol edin; çevreye yayılma var mı bakın.', 'Küflü ya da çürük kısmı yemeyin; tür tayini için uzmana fotoğraf gösterin.'] },
+    meyve_pas: { n: 'Pas / Kabuk Lekesi Şüphesi', d: 'Açık kahve, mantarımsı kabuk bölgeleri var. Genellikle estetik bir sorundur (russeting); nem ve külleme ile ilişkili olabilir.', t: 'Fizyolojik / fungal', r: ['Bahçe nemini ve sulama düzenini gözden geçirin.', 'Lekeler yayılıyorsa uzman görüşü alın.'] },
+    meyve_kuf: { n: 'Küf / Külleme Şüphesi', d: 'Yüzeyde beyazımsı örtü var. Küf veya külleme olabilir; parlak yansımalar da yanıltabilir.', t: 'Fungal', r: ['Fotoğrafı yansımasız ışıkta tekrar çekin.', 'Küflü meyveleri tüketmeyin ve ayırın.', 'Depo nemini düşürün.'] },
+    belirsiz: { n: 'Belirsiz Sonuç', d: 'Görüntüler birbiriyle çelişiyor veya net değil. Bu verilerle güvenilir bir ön değerlendirme yapılamıyor.', t: 'Belirsiz', r: ['Aynı bölgeyi farklı açılardan, gölgesiz ve eşit ışıkta tekrar çekin.', 'Merkeze net odaklanın, en az 3 fotoğraf kullanın.', 'Belirti sürüyorsa örneği ziraat müdürlüğü veya bitki koruma uzmanına gösterin.'] }
+};
+
+let mode = 'yaprak';
+const thumbs = $('thumbs');
+
+function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.mode-btn').forEach(b => {
+        const active = b.dataset.m === m;
+        b.className = active
+            ? 'mode-btn flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-sm font-semibold bg-leaf-600 text-white shadow-sm transition'
+            : 'mode-btn flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-900 transition';
+    });
+    $('hint').textContent = mode === 'meyve'
+        ? 'Elmanın yüzeyini yakın ve iyi ışıkta çekin (yaprak gerekmez)'
+        : 'Yaprak fotoğrafı çekin veya yükleyin';
+}
+
+document.querySelectorAll('.mode-btn').forEach(b => {
+    b.onclick = () => {
+        setMode(b.dataset.m);
+        $('res').classList.add('hidden');
+        $('f').value = '';
+        thumbs.innerHTML = '';
+    };
+});
+
+// Yaprak Piksel Renk Analizi
+function analyze(img) {
+    const c = document.createElement('canvas'), s = 96; c.width = c.height = s;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(img, 0, 0, s, s);
+    const p = x.getImageData(0, 0, s, s).data;
+    let g = 0, y = 0, b = 0, w = 0, n = 0;
+    for (let i = 0; i < p.length; i += 4) {
+        const r = p[i], gr = p[i + 1], bl = p[i + 2], mx = Math.max(r, gr, bl), mn = Math.min(r, gr, bl), sat = mx ? (mx - mn) / mx : 0;
+        if (mx > 235 && sat < .08) continue;
+        n++;
+        if (sat < .18 && mx > 170) w++;
+        else if (gr >= r * 1.05 && gr >= bl * 1.1 && sat > .2) g++;
+        else if (r > 150 && gr > 130 && bl < 110 && Math.abs(r - gr) < 60) y++;
+        else if (mx < 140 && r >= gr * 0.9) b++;
+        else if (r > gr && sat > .25) b++;
+        else g++;
+    }
+    if (n < 200) return null;
+    return { g: g / n, y: y / n, b: b / n, w: w / n };
+}
+
+function decide(m) {
+    const les = m.y + m.b + m.w;
+    if (les < .12) return 'saglikli';
+    const mx = Math.max(m.y, m.b, m.w);
+    return mx === m.b ? 'leke' : mx === m.y ? 'sararma' : 'kulleme';
+}
+
+// Elma Meyve Yüzeyi: İntegral Görüntü ile Yerel Kontrast ve Bağlı Bileşen Leke Analizi
+function analyzeFruit(img) {
+    const S = 112, c = document.createElement('canvas'); c.width = c.height = S;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(img, 0, 0, S, S);
+    const id = x.getImageData(0, 0, S, S), p = id.data, N = S * S;
+    const L = new Float32Array(N), M = new Uint8Array(N), cx = S / 2, R = S * .42;
+    let n = 0, y = 0, w = 0;
+    for (let j = 0; j < N; j++) {
+        const i = j * 4, r = p[i], g = p[i + 1], b = p[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0;
+        L[j] = .3 * r + .59 * g + .11 * b;
+        const px = j % S - cx, py = ((j / S) | 0) - cx;
+        if (px * px + py * py > R * R) continue;
+        if (mx > 235 && sat < .1) continue;
+        M[j] = 1; n++;
+        if (r >= g && g >= r * .65 && b < r * .6 && sat > .3 && sat < .6 && mx >= 120 && mx <= 210) y++;
+        else if (sat < .12 && mx > 185) w++;
+    }
+    if (n < 600) return null;
+    const W = S + 1, I = new Float64Array(W * W), Cn = new Float64Array(W * W);
+    for (let yy = 0; yy < S; yy++) {
+        let rs = 0, rc = 0;
+        for (let xx = 0; xx < S; xx++) {
+            const j = yy * S + xx;
+            rs += M[j] ? L[j] : 0; rc += M[j];
+            I[(yy + 1) * W + xx + 1] = I[yy * W + xx + 1] + rs;
+            Cn[(yy + 1) * W + xx + 1] = Cn[yy * W + xx + 1] + rc;
+        }
+    }
+    const sm = (A, x0, y0, x1, y1) => A[y1 * W + x1] - A[y0 * W + x1] - A[y1 * W + x0] + A[y0 * W + x0];
+    const F = new Uint8Array(N), k = 14;
+    for (let yy = 0; yy < S; yy++) for (let xx = 0; xx < S; xx++) {
+        const j = yy * S + xx; if (!M[j]) continue;
+        const x0 = Math.max(0, xx - k), x1 = Math.min(S, xx + k + 1), y0 = Math.max(0, yy - k), y1 = Math.min(S, yy + k + 1);
+        const cnt = sm(Cn, x0, y0, x1, y1); if (cnt < 20) continue;
+        const mean = sm(I, x0, y0, x1, y1) / cnt;
+        if (L[j] < mean * .7 && mean - L[j] > 22) F[j] = 1;
+    }
+    const seen = new Uint8Array(N), keep = new Uint8Array(N);
+    let spots = 0, maxS = 0, tot = 0;
+    for (let s = 0; s < N; s++) {
+        if (!F[s] || seen[s]) continue;
+        const q = [s], cell = []; seen[s] = 1;
+        while (q.length) {
+            const j = q.pop(); cell.push(j); const xx = j % S, yy = (j / S) | 0;
+            [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => {
+                const a = xx + dx, b = yy + dy; if (a < 0 || b < 0 || a >= S || b >= S) return;
+                const t = b * S + a; if (F[t] && !seen[t]) { seen[t] = 1; q.push(t); }
+            });
+        }
+        if (cell.length >= 6) { spots++; tot += cell.length; maxS = Math.max(maxS, cell.length); cell.forEach(j => keep[j] = 1); }
+    }
+    for (let j = 0; j < N; j++) {
+        const i = j * 4;
+        if (keep[j]) { p[i] = 255; p[i + 1] = 0; p[i + 2] = 200; }
+        else if (!M[j]) { p[i] *= .4; p[i + 1] *= .4; p[i + 2] *= .4; }
+    }
+    x.putImageData(id, 0, 0);
+    const b = tot / n, yv = y / n, wv = w / n;
+    return { g: Math.max(0, 1 - b - yv - wv), y: yv, b: b, w: wv, spots: spots, maxSpot: maxS / n, ov: c.toDataURL('image/jpeg', .75) };
+}
+
+function decideFruit(m) {
+    if (m.b < .03 && m.y < .12 && m.w < .12) return 'meyve_saglikli';
+    if (m.b >= .03 && m.b >= m.y && m.b >= m.w) return (m.maxSpot >= .07 || (m.spots <= 2 && m.b >= .08)) ? 'meyve_curuk' : 'meyve_karaleke';
+    return m.y >= m.w ? 'meyve_pas' : 'meyve_kuf';
+}
+
+function showDetail(items, ms, md) {
+    const d = $('dt2');
+    if (md !== 'meyve') { d.innerHTML = ''; return; }
+    const nm = { meyve_saglikli: 'Sağlam', meyve_karaleke: 'Karaleke şüphesi', meyve_curuk: 'Çürüklük şüphesi', meyve_pas: 'Pas lekesi', meyve_kuf: 'Küf/külleme şüphesi' };
+    const pc = v => '%' + (v * 100).toFixed(1).replace('.', ',');
+    const avg = (ms.reduce((a, x) => a + x.spots, 0) / ms.length).toFixed(1).replace('.', ','), mx = Math.max(...ms.map(x => x.maxSpot));
+    d.innerHTML = '<div class="bg-white p-4 rounded-xl border border-slate-200/80"><h4 class="text-sm font-bold text-slate-900 mb-1">🔍 Ayrıntılı Leke Maskesi İncelemesi</h4><p class="text-xs text-slate-500">Kare başına ortalama leke: <b>' + avg + '</b> · En büyük tek leke oranı: <b>' + pc(mx) + '</b></p><div class="flex flex-wrap gap-3 mt-3">' + ms.map((x, i) => '<div class="w-28 text-[11px] text-slate-500 bg-stone-50 p-1.5 rounded-lg border border-slate-200"><img src="' + x.ov + '" class="w-full rounded-md mb-1"><b class="text-slate-800 block">#' + (i + 1) + ' ' + nm[decideFruit(x)] + '</b>İşaretli: ' + pc(x.b) + ' · ' + x.spots + ' leke</div>').join('') + '</div><p class="text-[11px] text-slate-500 mt-2">Pembe alanlar çevresinden belirgin koyu bulunan bölgelerdir; kararan dış kısım analiz dışıdır.</p></div>';
+}
+
+function qualityOf(it) {
+    const c = document.createElement('canvas'), s = 96; c.width = c.height = s;
+    const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(it, 0, 0, s, s);
+    const p = x.getImageData(0, 0, s, s).data, g = new Float32Array(s * s); let sum = 0;
+    for (let j = 0; j < s * s; j++) { g[j] = .3 * p[j * 4] + .59 * p[j * 4 + 1] + .11 * p[j * 4 + 2]; sum += g[j]; }
+    const mean = sum / (s * s); let lv = 0, n = 0;
+    for (let yy = 1; yy < s - 1; yy++) for (let xx = 1; xx < s - 1; xx++) { const j = yy * s + xx, l = 4 * g[j] - g[j - 1] - g[j + 1] - g[j - s] - g[j + s]; lv += l * l; n++; }
+    const out = [];
+    if (mean < 45) out.push('çok karanlık');
+    if (mean > 225) out.push('aşırı parlak');
+    if (lv / n < 60) out.push('bulanık veya düşük detaylı');
+    return out;
+}
+
+// MobileNetV2 Bitki/Nesne Ön Filtresi
+let net = null;
+async function getNet() {
+    if (net) return net;
+    if (!window.mobilenet || !window.tf) return null;
+    try { net = await mobilenet.load({ version: 2, alpha: 1.0 }); return net; } catch (e) { return null; }
+}
+window.addEventListener('load', () => { getNet(); });
+
+const FRUIT = ['granny smith', 'orange', 'lemon', 'fig', 'pomegranate', 'strawberry', 'banana', 'pineapple', 'custard apple', 'jackfruit', 'bell pepper', 'cucumber', 'zucchini', 'acorn squash', 'butternut squash', 'spaghetti squash'];
+const PLANT = FRUIT.concat(['corn', 'cauliflower', 'broccoli', 'cabbage', 'head cabbage', 'artichoke', 'cardoon', 'daisy', 'pot', 'vase', 'greenhouse', 'hip', 'buckeye', 'acorn', 'earthstar', 'hay', 'rapeseed', 'mushroom', 'ear']);
+const isP = c => PLANT.some(w => c.className.toLowerCase().startsWith(w));
+const isF = c => FRUIT.some(w => c.className.toLowerCase().startsWith(w));
+
+function plantScore(it) {
+    const S = 96, c = document.createElement('canvas'); c.width = c.height = S;
+    const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(it, 0, 0, S, S);
+    const p = x.getImageData(0, 0, S, S).data, R = S * .45; let area = 0, pl = 0, gr = 0;
+    for (let j = 0; j < S * S; j++) {
+        const px = j % S - S / 2, py = ((j / S) | 0) - S / 2; if (px * px + py * py > R * R) continue; area++;
+        const r = p[j * 4], g = p[j * 4 + 1], b = p[j * 4 + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0;
+        if (sat < .25) continue;
+        if (g > r * 1.05 && g > b * 1.1) { pl++; gr++; }
+        else if (r > g * 1.3 && r > b * 1.3 && r > 100) pl++;
+        else if (r > 150 && g > 130 && b < 110) pl++;
+    }
+    return { s: pl / area, g: pl ? gr / pl : 0 };
+}
+
+async function screenItems(items, skipNet) {
+    const n = skipNet ? null : await getNet();
+    const keep = [], types = [], rej = []; let unsure = 0;
+    for (const it of items) {
+        const sc = plantScore(it); let preds = null;
+        if (n) { try { preds = await n.classify(it, 5); } catch (e) { } }
+        const top = preds && preds[0];
+        const pP = preds ? preds.filter(isP).reduce((a, c) => a + c.probability, 0) : 0;
+        const fP = preds ? preds.filter(isF).reduce((a, c) => a + c.probability, 0) : 0;
+        let v = 'ok';
+        if (top && !isP(top) && top.probability >= .55 && sc.s < .35) v = 'nesne';
+        else if (sc.s < .12) v = (top && !isP(top) && top.probability >= .3) ? 'nesne' : 'belirsiz';
+        else if (!(pP >= .2 || sc.s >= .35)) v = 'belirsiz';
+        if (v === 'ok') { keep.push(it); types.push(fP >= .15 ? 'meyve' : (sc.g >= .5 ? 'yaprak' : null)); }
+        else if (v === 'nesne') rej.push(top.className.split(',')[0]);
+        else unsure++;
+    }
+    const tot = items.length;
+    if (!keep.length) {
+        if (rej.length >= tot / 2) {
+            const lab = [...new Set(rej)].slice(0, 2).join(', ');
+            return { stop: true, title: 'Bitki veya meyve algılanmadı', text: 'Görüntüde bitki/meyve dışı bir nesne var (model tahmini: ' + lab + '). Lütfen yaprak veya meyvenin net göründüğü bir fotoğraf yükleyin.' };
+        }
+        return { stop: true, title: 'Emin olunamadı', text: 'Görüntüde bitki veya meyve olduğundan emin olunamadı. Lütfen konuyu yakından, net ve iyi ışıkta yeniden çekip yükleyin.' };
+    }
+    const tt = types.filter(Boolean); let note = '';
+    if (tt.length && !skipNet) {
+        const dt = tt.filter(x => x === 'meyve').length >= tt.length / 2 ? 'meyve' : 'yaprak';
+        setMode(dt);
+        note = 'Algılanan konu: ' + (dt === 'meyve' ? 'meyve yüzeyi' : 'yaprak') + '.';
+    }
+    const sk = rej.length + unsure;
+    if (sk) note += ' ' + sk + ' görüntü bitki/meyve olarak doğrulanamadığı için atlandı.';
+    return { keep, note };
+}
+
+function barsShow(v) { $('bars-wrap').style.display = v ? '' : 'none'; }
+
+function showStop(sc) {
+    $('res').classList.remove('hidden'); barsShow(false);
+    $('rt').textContent = 'Uyarı'; $('rn').textContent = sc.title; $('rd').textContent = sc.text;
+    $('ci').textContent = 'Görüntü doğrulama filtresi tarafından durduruldu.';
+    $('dt2').innerHTML = '';
+    $('rs').innerHTML = '<li>Konuyu kadrajın ortasına alın.</li><li>Yakından ve net çekin, flaş yansımasından kaçının.</li><li>Arka planda başka nesne olmamasına dikkat edin.</li>';
+}
+
+function loadImg(src) { return new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; }); }
+
+function vidFrames(file, n) {
+    return new Promise(res => {
+        const v = document.createElement('video'), out = [];
+        v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = URL.createObjectURL(file);
+        const bail = setTimeout(() => res(out), 15000);
+        v.onerror = () => { clearTimeout(bail); res(out); };
+        v.onloadedmetadata = async () => {
+            const d = v.duration;
+            if (!isFinite(d) || d <= 0) { clearTimeout(bail); res(out); return; }
+            for (let i = 0; i < n; i++) {
+                v.currentTime = d * (i + .5) / n;
+                await new Promise(r => { v.onseeked = r; });
+                const s = Math.min(v.videoWidth, v.videoHeight) || 160, c = document.createElement('canvas');
+                c.width = c.height = Math.min(s, 240);
+                c.getContext('2d').drawImage(v, (v.videoWidth - s) / 2, (v.videoHeight - s) / 2, s, s, 0, 0, c.width, c.height);
+                out.push(c);
+            }
+            clearTimeout(bail); res(out);
+        };
+    });
+}
+
+async function processItems(items, isSynthetic = false) {
+    thumbs.innerHTML = '';
+    items.forEach(it => {
+        const t = document.createElement('img');
+        t.src = it.src || it.toDataURL();
+        t.className = 'w-14 h-14 object-cover rounded-xl border border-slate-200 shadow-sm';
+        thumbs.appendChild(t);
+    });
+    $('res').classList.remove('hidden');
+    const sc = await screenItems(items, isSynthetic);
+    if (sc.stop) { showStop(sc); return; }
+    barsShow(true);
+    const kept = sc.keep;
+    const ms = [], ds = [];
+    const qi = isSynthetic ? [] : [...new Set(kept.flatMap(it => qualityOf(it)))];
+    kept.forEach(it => {
+        const m = mode === 'meyve' ? analyzeFruit(it) : analyze(it);
+        if (m) { ms.push(m); ds.push(mode === 'meyve' ? decideFruit(m) : decide(m)); }
+    });
+    if (!ms.length) {
+        $('rn').textContent = 'Yaprak/meyve algılanamadı';
+        $('rd').textContent = 'Lütfen konunun net göründüğü fotoğraflar veya video deneyin.';
+        $('rt').textContent = '–'; $('rs').innerHTML = ''; return;
+    }
+    const mean = k => ms.reduce((a, x) => a + x[k], 0) / ms.length;
+    const m = { g: mean('g'), y: mean('y'), b: mean('b'), w: mean('w') };
+    const votes = {}; ds.forEach(x => votes[x] = (votes[x] || 0) + 1);
+    const top = Object.keys(votes).sort((a, b) => votes[b] - votes[a]);
+    const key = (top.length > 1 && votes[top[0]] === votes[top[1]]) ? (mode === 'meyve' ? decideFruit(m) : decide(m)) : top[0];
+    const agree = votes[key] / ds.length;
+    const k = (ms.length > 1 && agree < .6) ? D.belirsiz : D[key];
+
+    $('rt').textContent = k.t; $('rn').textContent = k.n; $('rd').textContent = k.d;
+    const lvl = qi.length ? 'düşük' : (ms.length >= 5 && agree >= .8 ? 'yüksek' : ms.length >= 3 && agree >= .6 ? 'orta' : 'düşük');
+    $('ci-badge').textContent = 'Tutarlılık: %' + Math.round(agree * 100) + ' (' + lvl + ')';
+    let msg = 'Analiz edilen kare: ' + ms.length + ' · Kareler arası tutarlılık: %' + Math.round(agree * 100) + ' · Güvenilirlik etiketi: ' + lvl + '.';
+    if (ms.length === 1) msg += ' Tek görüntü kullanıldı; farklı açılardan 3–5 fotoğraf veya kısa video ekleyin.';
+    if (qi.length) msg += ' Görüntü kalitesi uyarısı: ' + qi.join(', ') + '.';
+    if (sc.note) msg = sc.note + ' ' + msg;
+    $('ci').textContent = msg;
+
+    const L = mode === 'meyve'
+        ? ['Sağlam meyve yüzeyi', 'Pas / açık kahve kabuk lekesi', 'Koyu leke / çürük alan', 'Beyaz / küf örtüsü']
+        : ['Sağlıklı (yeşil) alan', 'Sararma', 'Kahverengi / nekroz', 'Beyaz / küllü örtü'];
+    document.querySelectorAll('.lbl-row').forEach((r, i) => r.textContent = L[i]);
+    [['1', m.g], ['2', m.y], ['3', m.b], ['4', m.w]].forEach(([i, v]) => {
+        $('v' + i).textContent = '%' + (v * 100).toFixed(1).replace('.', ',');
+        $('b' + i).style.width = (v * 100) + '%';
+    });
+    $('rs').innerHTML = k.r.map(t => '<li>' + t + '</li>').join('');
+    showDetail(kept, ms, mode);
+}
+
+$('f').onchange = async e => {
+    const files = [...e.target.files]; if (!files.length) return;
+    const old = $('hint').textContent; $('hint').textContent = 'Analiz ediliyor…';
+    const items = [];
+    for (const f of files) {
+        if (items.length >= 16) break;
+        if (f.type.startsWith('video/')) items.push(...(await vidFrames(f, 8)));
+        else { const i = await loadImg(URL.createObjectURL(f)); if (i) items.push(i); }
+    }
+    items.length = Math.min(items.length, 16);
+    $('hint').textContent = old;
+    await processItems(items, false);
+    e.target.value = '';
+};
+
+// Kullanıcı kendi fotoğrafını yüklemeden önce algoritmayı gerçek zamanlı piksel üretimiyle deneyebilsin diye sentetik örnek oluşturucu
+function runDemoSample(type) {
+    const frames = [];
+    const count = 3; // Çoklu kare oy çokluğu (H2) gösterimi için 3 sentetik açı üretir
+    for (let idx = 0; idx < count; idx++) {
+        const c = document.createElement('canvas'); c.width = c.height = 160;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, 160, 160);
+        if (type === 'apple_scab') {
+            setMode('meyve');
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath(); ctx.arc(80, 80, 56, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#84cc16';
+            ctx.beginPath(); ctx.arc(65, 65, 22, 0, Math.PI * 2); ctx.fill();
+            // Karaleke benzeri çok sayıda küçük koyu nokta
+            ctx.fillStyle = '#27272a';
+            const spots = [[62, 62, 5], [88, 72, 6], [74, 96, 5], [95, 92, 4], [60, 86, 5], [82, 58, 4]];
+            spots.forEach(([sx, sy, sr]) => {
+                ctx.beginPath(); ctx.arc(sx + (idx - 1) * 3, sy, sr, 0, Math.PI * 2); ctx.fill();
+            });
+        } else if (type === 'leaf_healthy') {
+            setMode('yaprak');
+            ctx.fillStyle = '#2e7d32';
+            ctx.beginPath(); ctx.ellipse(80, 80, 38, 58, (idx - 1) * 0.1, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#81c784'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(80, 26); ctx.lineTo(80, 134); ctx.stroke();
+        } else {
+            setMode('yaprak');
+            ctx.fillStyle = '#eab308';
+            ctx.beginPath(); ctx.ellipse(80, 80, 38, 58, (idx - 1) * 0.1, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#65a30d';
+            ctx.beginPath(); ctx.ellipse(80, 62, 18, 24, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        frames.push(c);
+    }
+    processItems(frames, true);
+}
+
+// 82 Kayıtlık Tam Hastalık Veritabanı
+const DB = [
+    ['Elma', 'Karaleke (Venturia inaequalis)', 'Fungal', 'Yaprakta zeytin yeşili-kadife lekeler; meyvede koyu, kabuklu ve çatlak lekeler. İlkbaharda yağışlı, 10–24 °C havada hızlıdır.', 'Dökülen yaprakları toplayıp gömün; ilkbahar korumalı ilaçlama için ziraat mühendisine danışın; dayanıklı çeşit seçin.'],
+    ['Elma', 'Külleme (Podosphaera leucotricha)', 'Fungal', 'Genç yaprak ve sürgünlerde beyaz unumsu örtü; yapraklar kıvrılır. Meyvede ağ gibi pas izi bırakabilir.', 'Enfekte sürgünleri budayın; sık dikimden kaçının; kükürt/fungusit için uzman görüşü alın.'],
+    ['Elma', 'Sedir-elma pası (Gymnosporangium)', 'Fungal', 'Yaprak üstünde turuncu-sarı lekeler, altında tüpümsü yapılar; meyvede şekil bozukluğu.', 'Yakında ardıç/sedir varsa konak bitkiyi uzaklaştırın; zamanında fungusit programı.'],
+    ['Elma', 'Kara çürüklük / kurbağa gözü (Botryosphaeria)', 'Fungal', 'Yaprakta mor kenarlı kahverengi halkalı lekeler; meyvede çiçek ucundan başlayan siyah çürüme; dalda kanser.', 'Mumyalaşmış meyve ve ölü dalları temizleyin; budama yaralarını koruyun.'],
+    ['Elma', 'Monilya meyve çürüklüğü (Monilinia)', 'Fungal', 'Meyvede kahverengi yumuşak çürük, üzerinde krem-gri spor halkaları; mumyalaşma.', 'Yaralı ve çürük meyveleri ayırın; hasat ve depolamada hijyen; zararlı mücadelesi.'],
+    ['Elma', 'Ateş yanıklığı (Erwinia amylovora)', 'Bakteriyel', 'Sürgün ucu çoban değneği gibi kıvrılır; yapraklar yanmış gibi siyahlaşır ve dalda kalır.', 'Hasta dalı 30–40 cm sağlam kısımdan kesin, aletleri dezenfekte edin; hemen yetkili birime bildirin.'],
+    ['Elma', 'Alternaria yaprak lekesi', 'Fungal', 'Yaprakta kahverengi, eş merkezli lekeler ve erken dökülme; meyvede küçük koyu lekeler.', 'Ağaç içini havalandırın; dengeli azotlu gübreleme; fungusit için uzman görüşü.'],
+    ['Elma', 'Kök boğazı çürüklüğü (Phytophthora)', 'Fungal', 'Ağaç cılız, yapraklar erken sararır ve kızarır; kök boğazında koyu çürük.', 'Su tutan topraktan kaçının; drenaj sağlayın; kök boğazını açık tutun.'],
+    ['Elma', 'Acı leke (Bitter pit)', 'Fizyolojik', 'Meyve yüzeyinde çukurcuk kahverengi lekeler; kalsiyum eksikliği ve düzensiz sulama ile ilişkili.', 'Kalsiyum yapraktan uygulaması ve dengeli sulama için uzman görüşü alın; aşırı azottan kaçının.'],
+    ['Elma', 'Pas lekesi / russeting', 'Fizyolojik', 'Meyve kabuğunda açık kahve, pürüzlü ağsı bölgeler; çoğunlukla estetik sorun.', 'Nem ve soğuk hasarını azaltın; yayılıyorsa uzmana danışın.'],
+    ['Elma', 'Mavi küf (Penicillium) – depo', 'Fungal', 'Depodaki meyvede yumuşak çürük üzerinde mavi-yeşil küf.', 'Meyveyi yaralamadan hasat edin; depoyu temizleyin; küflü meyveyi tüketmeyin.'],
+    ['Elma', 'Avrupa kanseri (Neonectria ditissima)', 'Fungal', 'Dal ve gövdede çöküntülü, halkalı kanser yaraları; kabuk kuruyup soyulur, dal ölür.', 'Kanserli dalı yara altından kesip yakın; budama yaralarını koruyun; ıslak alanlardan kaçının.'],
+    ['Elma', 'Marssonina yaprak lekesi (Diplocarpon mali)', 'Fungal', 'Yaprakta yaz sonu koyu kahverengi-mor lekeler, sararma ve erken yaprak dökümü.', 'Dökülen yaprakları imha edin; ağaç içini havalandırın; ilaçlama için uzman görüşü alın.'],
+    ['Elma', 'Is lekesi / sinek pisliği (sooty blotch, flyspeck)', 'Fungal', 'Meyve yüzeyinde isli lekeler ve küçük siyah sinek pisliği benzeri noktalar; yüzeysel, silinebilir.', 'Budamayla hava akışı sağlayın; nemli bahçelerde hasat öncesi önlem için uzmana danışın.'],
+    ['Elma', 'Acı çürüklük (Colletotrichum / Glomerella)', 'Fungal', 'Meyvede batık, kahverengi dairesel çürük; sıcak ve nemli yaz koşullarında hızlıdır.', 'Çürük meyveyi ağaçta bırakmayın; hasat ve depo hijyeni.'],
+    ['Elma', 'Kök kanseri / taç uru (Agrobacterium)', 'Bakteriyel', 'Kök boğazı ve köklerde gelişen yumrulu urlar; ağaç gücünü kaybeder.', 'Sağlıklı fidan kullanın; fidan köklerini yaralamayın; ur olan alanda yeniden dikimde uzmana danışın.'],
+    ['Elma', 'Beyaz kök çürüklüğü (Armillaria)', 'Fungal', 'Ağaçta ani solma, kök boğazında beyaz misel örtüsü ve bal rengi mantarlar.', 'Hasta ağacı köküyle sökün; yeniden dikimden önce toprağı dinlendirin.'],
+    ['Elma', 'Elma mozaik virüsü', 'Virüs', 'Yaprakta açık sarı-krem mozaik, düzensiz lekeler; verim düşer.', 'Virüssüz sertifikalı fidan kullanın; tedavisi yoktur.'],
+    ['Elma', 'Elma iç kurdu (Cydia pomonella)', 'Zararlı', 'Meyvede küçük giriş deliği ve kırmızımsı çevre, içte kurt galerisi ve dışkı.', 'Feromon tuzaklarla izleyin; zararlı çıkışlarına göre uzman önerisiyle mücadele.'],
+    ['Elma', 'Yeşil elma yaprak biti', 'Zararlı', 'Genç sürgünde kıvrılan yapraklar, yapışkan şeker salgısı ve karınca; kurum küfü gelişir.', 'Doğal düşmanları (uğur böceği) koruyun; yoğun saldırıda uzmana danışın.'],
+    ['Elma', 'Kırmızı örümcek (Panonychus ulmi)', 'Zararlı', 'Yaprakta bronz-gümüşi noktalı sararma; sıcak, kuru yazlarda salgın yapar.', 'Doğal düşmanları koruyun; aşırı geniş etkili ilaçtan kaçının.'],
+    ['Elma', 'San Jose kabuklu biti', 'Zararlı', 'Dal ve meyvede gri kabuk benzeri küçük bitler, meyvede kırmızı halkalı lekeler.', 'Kış budamasında hasta dalları temizleyin; kışlık yağlı uygulama için uzmana danışın.'],
+    ['Elma', 'Güneş yanığı (sunscald)', 'Fizyolojik', 'Güneşe bakan meyve yüzünde beyazımsı-kahverengi yanık alan; gövdede kabuk çatlağı.', 'Yaprak örtüsünü koruyun; yaz budamasını aşırıya kaçırmayın; gövde boyatın.'],
+    ['Elma', 'Su kalbi (water core)', 'Fizyolojik', 'Meyve etinde camsı, sulu bölgeler; dış görünüm normaldir.', 'Hasadı geciktirmeyin; dengeli azot ve kalsiyum.'],
+    ['Elma', 'Demir klorozu', 'Beslenme', 'Yaprak damarları yeşil kalıp aralarında sararma; kireçli topraklarda görülür.', 'Toprak pH ve kireç düzeyine bakın; şelatlı demir için uzmana danışın.'],
+    ['Elma', 'Magnezyum / potasyum eksikliği', 'Beslenme', 'Yaşlı yapraklarda kenardan başlayan sararma veya kahverengileşme.', 'Toprak ve yaprak analizi yaptırın; gübrelemeyi buna göre ayarlayın.'],
+    ['Domates', 'Geç yanıklık (Phytophthora infestans)', 'Fungal', 'Sulu kahverengi lekeler, yaprak altında beyaz küf; meyvede sert kahverengi çürük.', 'Hasta bitkiyi sökün; yapraktan sulamadan kaçının; koruyucu ilaçlama için uzman.'],
+    ['Domates', 'Erken yanıklık (Alternaria solani)', 'Fungal', 'Alt yapraklarda halkalı kahverengi lekeler, çevresinde sararma.', 'Dönüşümlü ekim; alt yaprakları temizleyin.'],
+    ['Domates', 'Bakteriyel leke', 'Bakteriyel', 'Yaprakta küçük, koyu, yağlı lekeler; meyvede kabarık kabuklu lekeler.', 'Sağlıklı tohum/fide; sıçrama sulamadan kaçının.'],
+    ['Domates', 'Septoria yaprak lekesi', 'Fungal', 'Küçük yuvarlak lekeler, gri merkez ve koyu kenar; alt yapraklardan başlar.', 'Bitki artıklarını temizleyin; havalandırma.'],
+    ['Domates', 'Yaprak küfü (Cladosporium)', 'Fungal', 'Üstte sarı lekeler, altında zeytin yeşili küf; seralarda yaygındır.', 'Sera nemini düşürün, havalandırın.'],
+    ['Domates', 'Kırmızı örümcek', 'Zararlı', 'Yaprakta noktalı sararma ve ince ağ; kuru-sıcak havada artar.', 'Nemi dengeleyin; biyolojik mücadele veya akarisit için uzman görüşü.'],
+    ['Domates', 'Hedef leke (Corynespora)', 'Fungal', 'Halkalı kahverengi lekeler, yaprak ve meyvede.', 'Havalandırma; hasta kısımları uzaklaştırın.'],
+    ['Domates', 'Sarı yaprak kıvırcıklığı virüsü', 'Virüs', 'Yapraklar kıvrılır ve sararır, bitki bodur kalır; beyaz sinekle taşınır.', 'Beyaz sinek mücadelesi; hasta bitkiyi söküp imha edin.'],
+    ['Domates', 'Mozaik virüsü', 'Virüs', 'Yaprakta açık-koyu yeşil mozaik, deformasyon.', 'Aletleri dezenfekte edin; sağlıklı fide kullanın.'],
+    ['Domates', 'Fusarium solgunluğu', 'Fungal', 'Alt yapraklarda tek taraflı sararma, solgunluk; gövde kesitinde kahverengi damar.', 'Dayanıklı çeşit veya aşılı fide; hasta bitkiyi söküp imha edin.'],
+    ['Domates', 'Verticillium solgunluğu', 'Fungal', 'Yaprakta V şeklinde sararma ve solgunluk; damar kahverengileşir.', 'Dayanıklı çeşit; ekim nöbeti.'],
+    ['Domates', 'Gri küf (Botrytis)', 'Fungal', 'Meyve ve gövdede gri tüylü küf; yaralı dokulardan başlar.', 'Seranın nemini düşürün; hasta organları uzaklaştırın.'],
+    ['Domates', 'Çiçek ucu çürüklüğü', 'Fizyolojik', 'Meyvenin çiçek ucunda koyu, çökük, sert leke; kalsiyum ve düzensiz sulama ile ilişkili.', 'Düzenli sulama; kalsiyum dengesi için uzmana danışın.'],
+    ['Domates', 'Domates güvesi (Tuta absoluta)', 'Zararlı', 'Yaprakta galeriler (beyaz madenler), meyvede delik ve kurt.', 'Feromon tuzak; biyolojik mücadele; uzman önerisi.'],
+    ['Domates', 'Kök ur nematodu', 'Zararlı', 'Köklerde urlar, bitkide bodurluk ve solgunluk.', 'Dayanıklı çeşit; ekim nöbeti; güneşleme.'],
+    ['Domates', 'Bakteriyel kanser (Clavibacter)', 'Bakteriyel', 'Yaprak kenarında yanık, gövdede kanser çatlakları, meyvede kuş gözü lekeler.', 'Sağlıklı tohum; aletleri dezenfekte edin.'],
+    ['Patates', 'Erken yanıklık', 'Fungal', 'Eş merkezli halkalı kahverengi lekeler; alt yapraklardan başlar.', 'Dönüşümlü ekim; dengeli gübreleme.'],
+    ['Patates', 'Geç yanıklık', 'Fungal', 'Sulu koyu lekeler; yumruda kahverengi kuru çürük.', 'Sertifikalı tohumluk; hasta bitkiyi imha edin.'],
+    ['Patates', 'Kara bacak / yumuşak çürüklük', 'Bakteriyel', 'Gövde tabanı siyahlaşır; yumruda kokulu yumuşak çürük.', 'Sertifikalı tohumluk; iyi drenaj; hasta bitkileri uzaklaştırın.'],
+    ['Patates', 'Rhizoctonia (siyah uyuz)', 'Fungal', 'Yumru yüzeyinde siyah sert toprak benzeri sklerotlar; sürgünde yanık.', 'Sıcak ve ıslak toprakta erken dikimden kaçının; ekim nöbeti.'],
+    ['Patates', 'Patates böceği (Leptinotarsa)', 'Zararlı', 'Yapraklar yenir, sarı-siyah çizgili böcek ve turuncu larvalar görülür.', 'Elle toplama, izleme; yoğunlukta uzman önerisi.'],
+    ['Biber', 'Bakteriyel leke (Xanthomonas)', 'Bakteriyel', 'Yaprakta küçük, sulu, sonra kahverengileşen lekeler; meyvede kabarık lekeler.', 'Sağlıklı tohum; sıçrama sulamadan kaçının.'],
+    ['Biber', 'Phytophthora kök ve gövde çürüklüğü', 'Fungal', 'Bitki aniden solar, gövde tabanı kararır.', 'Drenaj; aşırı sulamadan kaçının; aşılı fide.'],
+    ['Biber', 'Antraknoz', 'Fungal', 'Meyvede batık, koyu, halkalı lekeler.', 'Hasta meyveyi uzaklaştırın; sağlıklı tohum.'],
+    ['Buğday', 'Sarı pas (Puccinia striiformis)', 'Fungal', 'Yapraklarda sarı toz dolu şeritler; serin ve nemli havada yayılır.', 'Dayanıklı çeşit; erken uyarı ve uzman önerisi.'],
+    ['Buğday', 'Kahverengi pas', 'Fungal', 'Yaprakta dağınık turuncu-kahverengi kabarcıklar.', 'Dayanıklı çeşit; ekim nöbeti.'],
+    ['Buğday', 'Septoria yaprak lekesi', 'Fungal', 'Yaprakta sarımsı-kahverengi lekeler, içinde siyah noktalar.', 'Sağlıklı tohum; anız yönetimi.'],
+    ['Buğday', 'Fusarium başak yanıklığı', 'Fungal', 'Başak beyazlaşır, taneler buruşuk ve pembemsi; mikotoksin riski.', 'Ekim nöbeti; çiçeklenmede yağış varsa uzmana danışın.'],
+    ['Buğday', 'Sürme (Tilletia)', 'Fungal', 'Taneler siyah toz dolu ve balık kokulu.', 'İlaçlı, sertifikalı tohum.'],
+    ['Zeytin', 'Halkalı leke (tavus gözü, Spilocaea)', 'Fungal', 'Yaprakta halkalı koyu lekeler, sararma ve yaprak dökümü.', 'Budayla ışık ve hava girmesini sağlayın; sonbahar-ilkbahar koruması için uzmana danışın.'],
+    ['Zeytin', 'Verticillium solgunluğu', 'Fungal', 'Dalların tek tek kuruması, yaprakların solması.', 'Hasta dalları budayıp yakın; dengeli sulama.'],
+    ['Zeytin', 'Zeytin sineği', 'Zararlı', 'Meyvede küçük delik, içinde larva; yağ kalitesi düşer.', 'Tuzakla izleme ve toplu mücadele için kooperatif ya da uzman önerisi.'],
+    ['Armut', 'Armut karalekesi (Venturia pirina)', 'Fungal', 'Yaprak ve meyvede koyu zeytin lekeleri, meyvede çatlak.', 'Dökülen yaprakları imha edin; elma karalekesine benzer yönetim.'],
+    ['Armut', 'Ateş yanıklığı', 'Bakteriyel', 'Sürgün ucu kıvrılır, yaprak siyahlaşır ve dalda kalır.', 'Hasta dalı sağlam kısımdan kesin; aletleri dezenfekte edin; yetkili birime bildirin.'],
+    ['Armut', 'Armut psillidi', 'Zararlı', 'Yapışkan balözü ve kurum küfü, sürgün ve yaprakta zayıflama.', 'Doğal düşmanları koruyun; uzman önerisi.'],
+    ['Üzüm', 'Kara çürüklük (Guignardia)', 'Fungal', 'Yaprakta kahverengi lekeler, meyvede siyah kurumuş tane.', 'Mumyaları temizleyin; budama ve havalandırma.'],
+    ['Üzüm', 'Kara kızıl (Esca)', 'Fungal', 'Yaprak kenarlarında damarlar arası kuruma ve kırmızılaşma, tanede lekeler.', 'Yaraları koruyun; hasta bağı işaretleyip uzmana bildirin.'],
+    ['Üzüm', 'Yaprak yanıklığı (Isariopsis)', 'Fungal', 'Yaprakta koyu kahverengi köşeli lekeler.', 'Havalandırma; yaprak ve artık temizliği.'],
+    ['Şeftali', 'Bakteriyel leke (Xanthomonas)', 'Bakteriyel', 'Yaprakta delik delik lekeler, meyvede çatlak lekeler.', 'Dayanıklı çeşit; dengeli gübreleme.'],
+    ['Şeftali', 'Yaprak kıvırcıklığı (Taphrina deformans)', 'Fungal', 'İlkbaharda yapraklar kabarır, kıvrılır, kırmızımsı-pembe olur.', 'Tomurcuk kabarmadan önce koruyucu uygulama için uzmana danışın.'],
+    ['Şeftali', 'Monilya (çiçek ve meyve çürüklüğü)', 'Fungal', 'Çiçek kuruması, meyvede kahverengi çürük ve spor halkaları.', 'Mumyaları temizleyin; çiçeklenmede nem varsa uzmana danışın.'],
+    ['Mısır', 'Gri yaprak lekesi (Cercospora)', 'Fungal', 'Dikdörtgen, gri-kahverengi lekeler.', 'Dönüşümlü ekim; artık imhası.'],
+    ['Mısır', 'Ortak pas (Puccinia sorghi)', 'Fungal', 'Yaprakta küçük kahverengi-pas rengi kabarcıklar.', 'Dayanıklı çeşit; ağır enfeksiyonda uzman görüşü.'],
+    ['Mısır', 'Kuzey yaprak yanıklığı', 'Fungal', 'Uzun, puro biçimli gri-yeşil lekeler.', 'Dayanıklı çeşit; ekim nöbeti.'],
+    ['Salatalık', 'Mildiyö (Pseudoperonospora)', 'Fungal', 'Yapraklarda köşeli sarı lekeler, alt yüzde gri-mor küf.', 'Havalandırma; yaprak ıslaklığını azaltın.'],
+    ['Salatalık', 'Külleme', 'Fungal', 'Yaprakta beyaz unumsu örtü.', 'Aralıklı dikim; dayanıklı çeşit.'],
+    ['Çilek', 'Yaprak yanıklığı (Leaf scorch)', 'Fungal', 'Yaprakta mor-kahverengi küçük lekeler, birleşip kurur.', 'Eski yaprakları temizleyin; damla sulama.'],
+    ['Çilek', 'Gri küf (Botrytis)', 'Fungal', 'Meyvede gri tüylü küf ve yumuşak çürük.', 'Malçla meyve-toprak temasını kesin; çürükleri toplayın.'],
+    ['Çilek', 'Külleme', 'Fungal', 'Yaprak altı beyaz örtü, yaprak kenarları yukarı kıvrılır.', 'Havalandırma; dayanıklı çeşit.'],
+    ['Narenciye', 'Kanser (Xanthomonas citri)', 'Bakteriyel', 'Yaprak, dal ve meyvede kabarık, kenarı sarı hale çevrili lekeler.', 'Karantina kurallarına uyun; şüpheli ağacı yetkili birime bildirin.'],
+    ['Narenciye', 'Kök boğazı çürüklüğü (Phytophthora)', 'Fungal', 'Gövde tabanında zamklı çürük ve ağaçta sararma.', 'Aşılı kısmı toprağın üzerinde tutun; iyi drenaj.'],
+    ['Portakal', 'Yeşillenme (Huanglongbing)', 'Bakteriyel', 'Yaprakta asimetrik sarı lekeler, meyve küçük ve acı kalır; sürgün psillidi taşır.', 'Hasta ağacı ilgili kuruma bildirin; vektör mücadelesi.'],
+    ['Kabak', 'Külleme', 'Fungal', 'Yaprakta beyaz, unumsu örtü.', 'Aralık dikim; havalandırma.'],
+    ['Kiraz', 'Külleme', 'Fungal', 'Yaprakta beyaz unumsu örtü, kıvrılma.', 'Havalandırma; uzman görüşüyle fungusit.'],
+    ['Soya', 'Soya pası', 'Fungal', 'Yaprak alt yüzeyinde küçük kahverengi kabarcıklar; erken yaprak dökümü.', 'Erken ekim; bölgesel uyarılara bakın.'],
+    ['Yaban mersini', 'Mumyalaşma / meyve çürüklüğü', 'Fungal', 'Meyve buruşur, gri-pembe kütle olur; sürgün ucu yanıklığı.', 'Mumyaları uzaklaştırın; havalandırma.']
+];
+
+let fp = 'Tümü', qs = '';
+function listGuide() {
+    const t = qs.toLowerCase();
+    const items = DB.filter(d => (fp === 'Tümü' || d[0] === fp) && (!t || (d[0] + ' ' + d[1] + ' ' + d[2] + ' ' + d[3]).toLowerCase().includes(t)));
+    $('g-count').textContent = items.length + ' Kayıt';
+    $('gl').innerHTML = items.map(d =>
+        '<details class="group py-3"><summary class="flex items-center justify-between cursor-pointer font-semibold text-sm text-slate-800 hover:text-leaf-700"><div><span>' + d[0] + ' – ' + d[1] + '</span>' + (d[0] === 'Elma' ? '<span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Öncelikli</span>' : '') + '</div><span class="text-xs text-slate-400 group-open:rotate-180 transition">▼</span></summary><div class="mt-2.5 pl-3 border-l-2 border-leaf-500 space-y-1.5 text-xs text-slate-600"><span class="inline-block px-2.5 py-0.5 rounded-md bg-leaf-50 text-leaf-700 font-semibold">' + d[2] + '</span><p><b class="text-slate-800">Belirti:</b> ' + d[3] + '</p><p><b class="text-slate-800">Öneri:</b> ' + d[4] + '</p></div></details>'
+    ).join('') || '<p class="text-sm text-slate-500 py-6 text-center">Aramanızla eşleşen kayıt bulunamadı.</p>';
+}
+
+function renderGuide() {
+    const pl = ['Tümü', ...new Set(DB.map(d => d[0]))];
+    $('gc').innerHTML = pl.map(p =>
+        '<button type="button" data-p="' + p + '" class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition ' + (p === fp ? 'bg-leaf-600 text-white border-leaf-600' : 'bg-stone-50 text-slate-600 border-slate-200 hover:bg-slate-100') + '">' + (p === 'Elma' ? '🍎 ' : '') + p + '</button>'
+    ).join('');
+    $('gc').onclick = e => {
+        const p = e.target.dataset.p; if (!p) return;
+        fp = p;
+        $('gc').querySelectorAll('button').forEach(b => {
+            const on = b.dataset.p === p;
+            b.className = 'shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition ' + (on ? 'bg-leaf-600 text-white border-leaf-600' : 'bg-stone-50 text-slate-600 border-slate-200 hover:bg-slate-100');
+        });
+        listGuide();
+    };
+    $('q').oninput = e => { qs = e.target.value; listGuide(); };
+    listGuide();
+}
+
+renderGuide();
+
+// ============================================================================
+// İNTERAKTİF ANİMASYONLU EĞİTİCİ VİDEO MOTORU (HTML5 CANVAS 5 SAHNE)
+// ============================================================================
+const SCENES = [
+    {
+        title: 'Sahne 1 / 5 • Neden Bu Projeyi Yaptık?',
+        sub: 'Bitki hastalıkları tarımda %17–30 ürün kaybına yol açar. Üretici sahada her an uzmana ulaşamadığı ve mevcut sistemler sadece yaprağa baktığı için hem yaprağı hem elma meyvesini inceleyen bu mobil sistemi geliştirdik.'
+    },
+    {
+        title: 'Sahne 2 / 5 • Program Nasıl Kullanılır? (Çoklu Fotoğraf & Video)',
+        sub: 'Uygulama telefon tarayıcısında kurulumsuz çalışır. Yaprak veya elma meyvesi modunu seçip birden fazla fotoğraf ya da kısa video yüklersiniz; sistem videodan otomatik en fazla 16 kare çıkarır.'
+    },
+    {
+        title: 'Sahne 3 / 5 • Akıllı Leke Tespiti ve Pembe Maskeleme',
+        sub: 'Program kadrajın merkezine odaklanır, parlak yansımaları eler ve integral görüntü yöntemiyle çevresinden belirgin koyu lekeleri bulur. Küçük lekeleri karaleke, geniş koyu alanları çürüklük olarak ayırıp pembe ile işaretler.'
+    },
+    {
+        title: 'Sahne 4 / 5 • Çoklu Kare Oy Çokluğu ve Tutarlılık Skoru',
+        sub: 'Tek fotoğraftaki gölge veya ışık yanılgısını önlemek için tüm karelerin kararları oylanır. Kareler arası uyum oranına göre düşük, orta veya yüksek tutarlılık etiketi üretilir.'
+    },
+    {
+        title: 'Sahne 5 / 5 • Derin Öğrenme Hedefi ve 82 Kayıtlık Uzman Rehberi',
+        sub: 'İkinci aşamada ResNet50, MobileNetV2 ve ViT modelleri uzman etiketli saha verileriyle eğitilecektir. Uygulama 82 kayıtlık rehberle bakım adımları sunar ve kesin teşhis için ziraat mühendisine yönlendirir.'
+    }
+];
+
+const SCENE_DUR = 9; // Her sahne 9 saniye (toplam 45 sn)
+const TOTAL_DURATION = SCENES.length * SCENE_DUR;
+let vidTime = 0;
+let vidPlaying = true;
+let lastFrameTs = null;
+
+function jumpScene(idx) {
+    vidTime = idx * SCENE_DUR + 0.05;
+    vidPlaying = true;
+    $('vid-play-icon').textContent = '⏸';
+    $('vid-play-text').textContent = 'Duraklat';
+}
+
+$('vid-play-btn').onclick = () => {
+    vidPlaying = !vidPlaying;
+    $('vid-play-icon').textContent = vidPlaying ? '⏸' : '▶';
+    $('vid-play-text').textContent = vidPlaying ? 'Duraklat' : 'Oynat';
+};
+
+$('vid-restart-btn').onclick = () => {
+    vidTime = 0;
+    vidPlaying = true;
+    $('vid-play-icon').textContent = '⏸';
+    $('vid-play-text').textContent = 'Duraklat';
+};
+
+$('vid-progress-wrap').onclick = e => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    vidTime = ratio * TOTAL_DURATION;
+};
+
+function drawEduVideo(ts) {
+    if (!lastFrameTs) lastFrameTs = ts;
+    const dt = (ts - lastFrameTs) / 1000;
+    lastFrameTs = ts;
+
+    if (vidPlaying) {
+        vidTime += dt;
+        if (vidTime >= TOTAL_DURATION) vidTime = 0;
+    }
+
+    const canvas = $('edu-canvas');
+    if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const targetW = Math.max(320, Math.round(rect.width * dpr));
+        const targetH = Math.max(180, Math.round(rect.height * dpr));
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+            canvas.width = targetW;
+            canvas.height = targetH;
+        }
+
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const sceneIdx = Math.min(SCENES.length - 1, Math.floor(vidTime / SCENE_DUR));
+        const localT = (vidTime % SCENE_DUR) / SCENE_DUR;
+
+        // UI Güncelleme
+        $('vid-scene-badge').textContent = SCENES[sceneIdx].title;
+        $('vid-subtitle').textContent = SCENES[sceneIdx].sub;
+        $('vid-progress').style.width = ((vidTime / TOTAL_DURATION) * 100).toFixed(1) + '%';
+        const fmt = s => '00:' + String(Math.floor(s)).padStart(2, '0');
+        $('vid-time').textContent = fmt(vidTime) + ' / 00:' + TOTAL_DURATION;
+        document.querySelectorAll('.vid-step').forEach((btn, i) => {
+            btn.className = i === sceneIdx
+                ? 'vid-step px-2.5 py-1.5 rounded-lg bg-emerald-500/25 text-emerald-300 border border-emerald-400/50 font-bold transition'
+                : 'vid-step px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white font-semibold transition';
+        });
+
+        // Arka Plan Gradyanı
+        const bg = ctx.createLinearGradient(0, 0, W, H);
+        bg.addColorStop(0, '#09150e');
+        bg.addColorStop(1, '#0f172a');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        // Hafif Izgara Çizgileri
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.06)';
+        ctx.lineWidth = 1;
+        const step = Math.round(W / 16);
+        for (let x = 0; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+        for (let y = 0; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+        const cx = W * 0.5, cy = H * 0.41;
+        const scale = Math.min(W / 800, H / 450);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
+
+        if (sceneIdx === 0) {
+            // SAHNE 1: Neden Bu Projeyi Yaptık? (Sorun ve Amaç)
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath(); ctx.arc(-130, 0, 66, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#16a34a';
+            ctx.beginPath(); ctx.ellipse(-110, -74, 22, 10, -0.4, 0, Math.PI * 2); ctx.fill();
+            const rGrow = 4 + Math.sin(localT * Math.PI) * 5;
+            ctx.fillStyle = '#27272a';
+            [[-145, -12], [-112, 14], [-135, 24], [-105, -18]].forEach(([lx, ly]) => {
+                ctx.beginPath(); ctx.arc(lx, ly, rGrow, 0, Math.PI * 2); ctx.fill();
+            });
+
+            ctx.fillStyle = 'rgba(30, 41, 59, 0.92)';
+            ctx.strokeStyle = 'rgba(52, 211, 153, 0.45)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.roundRect(-15, -75, 290, 150, 16); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#34d399'; ctx.font = 'bold 15px Inter, sans-serif';
+            ctx.fillText('Neden Bu Projeyi Geliştirdik?', 5, -44);
+            ctx.fillStyle = '#fbbf24'; ctx.font = 'extrabold 26px Inter, sans-serif';
+            ctx.fillText('%17 – %30 Ürün Kaybı', 5, -10);
+            ctx.fillStyle = '#cbd5e1'; ctx.font = '13px Inter, sans-serif';
+            ctx.fillText('• Uzmana sahada erişim kısıtlı', 5, 18);
+            ctx.fillText('• Mevcut sistemler sadece yaprağa bakar', 5, 38);
+            ctx.fillText('• Biz elma meyvesini de analiz ediyoruz', 5, 58);
+        } else if (sceneIdx === 1) {
+            // SAHNE 2: Program Nasıl Kullanılır?
+            ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#64748b'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.roundRect(-235, -85, 115, 170, 18); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath(); ctx.ellipse(-178, 0, 26, 42, 0.2, 0, Math.PI * 2); ctx.fill();
+            const scanY = -60 + Math.sin(localT * Math.PI * 4) * 50;
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(-222, scanY); ctx.lineTo(-134, scanY); ctx.stroke();
+
+            ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.fillText('➔', -98, 8);
+            const shown = Math.min(4, Math.floor(localT * 5) + 1);
+            for (let i = 0; i < shown; i++) {
+                const kx = -52 + i * 76;
+                ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.roundRect(kx, -45, 64, 90, 10); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#16a34a';
+                ctx.beginPath(); ctx.ellipse(kx + 32, -4, 15, 25, (i - 1.5) * 0.15, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillText('Kare #' + (i + 1), kx + 11, 35);
+            }
+        } else if (sceneIdx === 2) {
+            // SAHNE 3: Merkez Odak + Pembe Leke Maskesi
+            [-130, 130].forEach((ox, idx) => {
+                ctx.fillStyle = idx === 0 ? '#dc2626' : '#7f1d1d';
+                ctx.beginPath(); ctx.arc(ox, 0, 66, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = idx === 1 ? '#38bdf8' : 'rgba(255,255,255,0.3)';
+                ctx.setLineDash([6, 4]); ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(ox, 0, 52, 0, Math.PI * 2); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = idx === 1 ? '#ff00c8' : '#18181b';
+                [[-18, -14, 7], [16, 12, 8], [-6, 22, 6], [20, -18, 5]].forEach(([dx, dy, r]) => {
+                    ctx.beginPath(); ctx.arc(ox + dx, dy, r, 0, Math.PI * 2); ctx.fill();
+                });
+                ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px Inter, sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText(idx === 0 ? 'Orijinal Elma Yüzeyi' : 'İntegral Kontrast Maskesi', ox, 90);
+            });
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#34d399'; ctx.font = 'bold 24px Inter, sans-serif';
+            ctx.fillText('➔', -14, 8);
+        } else if (sceneIdx === 3) {
+            // SAHNE 4: Çoklu Kare Oy Çokluğu (H2 Hipotezi)
+            const votes = ['Karaleke', 'Karaleke', 'Karaleke', 'Sağlam'];
+            votes.forEach((v, i) => {
+                const bx = -235 + i * 120;
+                const isWin = v === 'Karaleke';
+                ctx.fillStyle = isWin ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+                ctx.strokeStyle = isWin ? '#10b981' : '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.roundRect(bx, -68, 105, 74, 12); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#94a3b8'; ctx.font = '11px Inter, sans-serif';
+                ctx.fillText('Açı / Kare #' + (i + 1), bx + 12, -46);
+                ctx.fillStyle = isWin ? '#6ee7b7' : '#fcd34d'; ctx.font = 'bold 13px Inter, sans-serif';
+                ctx.fillText(v, bx + 12, -20);
+            });
+            ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.roundRect(-190, 26, 380, 56, 14); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#34d399'; ctx.font = 'bold 14px Inter, sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('Oy Çokluğu: %75 Karaleke Şüphesi • Tutarlılık: ORTA-YÜKSEK', 0, 59);
+            ctx.textAlign = 'left';
+        } else {
+            // SAHNE 5: Derin Öğrenme Yol Haritası & Uzman Desteği
+            const cards = [
+                { t: 'ResNet50 & ViT', d: 'Transfer Öğrenme (%97–99)', c: '#38bdf8' },
+                { t: 'MobileNetV2', d: 'Mobil TFLite (~15 ms)', c: '#34d399' },
+                { t: '82 Kayıtlı Rehber', d: 'Uzman Teyidi & Bakım', c: '#fbbf24' }
+            ];
+            cards.forEach((item, i) => {
+                const cx2 = -260 + i * 178;
+                ctx.fillStyle = '#1e293b'; ctx.strokeStyle = item.c; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.roundRect(cx2, -55, 164, 110, 14); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = item.c; ctx.font = 'bold 14px Inter, sans-serif';
+                ctx.fillText(item.t, cx2 + 14, -18);
+                ctx.fillStyle = '#e2e8f0'; ctx.font = '12px Inter, sans-serif';
+                ctx.fillText(item.d, cx2 + 14, 14);
+            });
+        }
+
+        ctx.restore();
+    }
+    requestAnimationFrame(drawEduVideo);
+}
+requestAnimationFrame(drawEduVideo);
+</script>
+</body>
+</html>
